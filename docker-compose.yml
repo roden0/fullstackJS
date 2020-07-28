@@ -1,0 +1,53 @@
+version: "3.8"
+
+services:
+
+  ui:
+    container_name: react-app
+    build: ./ui
+    ports:
+      - '8000:80'
+    depends_on:
+      - api
+    healthcheck:
+      test: ["CMD", "curl", http://localhost:8000"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  api:
+    container_name: node-app
+    build: ./api
+    ports:
+      - "3000:3000"
+    depends_on:
+      - db
+    networks:
+      - backend-node
+    healthcheck:
+      test: ["CMD", "curl", http://localhost:3000"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  db:
+    image: mongo
+    container_name: mongodb
+    restart: always
+    environment:
+      #MONGO_INITDB_ROOT_USERNAME: root
+      #MONGO_INITDB_ROOT_PASSWORD: mongodb
+      MONGO_INITDB_DATABASE: mongodbapp
+    #volumes:
+    #- ./db:/docker-entrypoint-initdb.d/
+    #- ./data:/data/db
+    ports:
+      - "27017:27017"
+    networks:
+      - backend-node
+
+networks:
+  backend-node:
+    driver: bridge
